@@ -15,5 +15,6 @@ export const config = writable({
     maxMessage: 30,
     timeMessage: '0',
     customAvatar: [],
-    color: false
+    color: false,
+    debug: false,
 });

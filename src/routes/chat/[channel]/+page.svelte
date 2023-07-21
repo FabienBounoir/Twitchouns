@@ -117,7 +117,9 @@
 	};
 </script>
 
-<pre style="position: absolute;">{JSON.stringify($config, null, 2)}</pre>
+{#if $config.debug}
+	<pre style="position: absolute;">{JSON.stringify($config, null, 2)}</pre>
+{/if}
 
 <main>
 	<div id="saver">
