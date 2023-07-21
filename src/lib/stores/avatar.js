@@ -28,7 +28,7 @@ export const randomAvatar = () => {
 
     console.log($config);
 
-    let image = $config?.customAvatar || [fete, hop, love, nice, yo, ah];
+    let image = $config?.customAvatar.length > 0 ? $config?.customAvatar : [fete, hop, love, nice, yo, ah];
 
     // if (Date.now() - timestamps > 5000) {
     //     timestamps = Date.now();
