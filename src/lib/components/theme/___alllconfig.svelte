@@ -1,151 +1,70 @@
 <script>
-	import { onMount } from 'svelte';
-	import * as events from '$lib/events/index';
-	import { get } from 'svelte/store';
-
-	import { fade, scale, slide } from 'svelte/transition';
-
 	import { config } from '$lib/stores/config';
 	import { messages } from '$lib/stores/message';
-
-	import Avatar from '$lib/components/avatar.svelte';
-	import Clip from '$lib/components/clip.svelte';
-	import { page } from '$app/stores';
-
-	import { badges } from '$lib/stores/badges';
-	import { randomAvatar } from '$lib/stores/avatar';
-	import { asVideo, clip } from '$lib/stores/clip';
-	import Dark from '$lib/components/theme/dark.svelte';
-	import Light from '$lib/components/theme/light.svelte';
-	import Glass from '$lib/components/theme/glass.svelte';
-	import Flatwhite from '$lib/components/theme/flatwhite.svelte';
-	import Flatdark from '$lib/components/theme/flatdark.svelte';
-	import Linearrgb from '$lib/components/theme/linearrgb.svelte';
-	import Bluepurple from '$lib/components/theme/bluepurple.svelte';
-	import Rgb from '$lib/components/theme/rgb.svelte';
-	import Maxime from '$lib/components/theme/maxime.svelte';
-
-	// export let data;
-	$config.channels = $page.params.channel.split(',');
-
-	let tchat = [];
-
-	location.search.split(/[?&]/g).reduce((a, pair) => {
-		if (!pair.trim()) return a;
-		const [key, value] = pair.split('=');
-		$config[key] = value.includes(',') ? value.split(',') : value;
-		return a;
-	}, {});
-
-	// &customAvatar=https://media.discordapp.net/attachments/1014101467126304798/1126123705878183937/fire_3d_1.png,https://cdn.discordapp.com/attachments/1014101467126304798/1122909288600436787/radio_3d_2.png,https://media.discordapp.net/attachments/1014101467126304798/1122909148204515388/broom_3d.png,https://cdn.discordapp.com/attachments/1014101467126304798/1122908832994177166/detective_3d_default_1.png
-	console.log($config);
-
-	let tchatMax = 10;
-
-	const client = new tmi.Client({
-		options: { debug: false },
-		connection: {
-			secure: true,
-			reconnect: true
-		},
-
-		channels: $config?.channels || ['badbounstv']
-	});
-
-	//connection au tchat twitch
-	client.connect();
+	import { get } from 'svelte/store';
+	import { fade, scale, slide } from 'svelte/transition';
 
 	$messages = get(messages);
-
-	////// init all Event ///////
-	for (let event of Object.values(events)) {
-		console.log(event);
-		let eventInit = new event($config);
-		console.log(eventInit.getEventName());
-		if (
-			$config.events.includes(eventInit.getEventName()) ||
-			['clearchat', 'messagedeleted'].includes(eventInit.getEventName())
-		) {
-			console.log('add ' + eventInit.getEventName());
-			client.on(eventInit.getEventName(), (...args) => eventInit.run(...args));
-		} else {
-			console.log('continue ' + eventInit.getEventName());
-			continue;
-		}
-	}
-
-	const getGBadge = async () => {
-		const res = await fetch('/api/getGBadge');
-		const data = await res.json();
-		console.log(data);
-		if (data && data.data && data.data.length > 0) {
-			$badges.global = data.data;
-		}
-	};
-
-	const getCBadge = async () => {
-		let channels = $config?.channels;
-		for (let channel of channels) {
-			console.log(channel);
-			const res = await fetch('/api/getCBadge?channel=' + channel.replace('#', ''));
-			const data = await res.json();
-			console.log(data);
-			if (data && data.data && data.data.length > 0) {
-				$badges.channels[channel.replace('#', '')] = data.data;
-			}
-		}
-	};
-
-	getGBadge();
-	getCBadge();
-	randomAvatar();
-
-	setTimeout(() => {
-		console.log($badges);
-	}, 10000);
-
-	const components = {
-		dark: Dark,
-		light: Light,
-		glass: Glass,
-		flatwhite: Flatwhite,
-		flatdark: Flatdark,
-		linearrgb: Linearrgb,
-		bluepurple: Bluepurple,
-		rgb: Rgb,
-		maxime: Maxime
-	};
+	$config = get(config);
 </script>
 
-<pre style="position: absolute;">{JSON.stringify($config, null, 2)}</pre>
-
-<main>
-	<div id="saver">
-		<!-- {#each confetti as c}
-            <img
-                class="animationAvatar"
-                style="left: {c.x}%; top: {c.y}%; transform: scale({c.r})"
-                src={c.character}
-                alt=" "
-            />
-        {/each} -->
-		<div
-			class="gridApp {$config.position === 'left' ? 'gridLeft' : 'gridRight'}"
-			style="margin-bottom: {$config.margin[2]}px; margin-top: {$config
-				.margin[0]}px; margin-left: {$config.margin[3]}px; margin-right: {$config.margin[1]}px;"
-		>
-			<svelte:component this={components[$config.theme]} />
-
-			{#if $config.avatar != null}
-				{#if $messages.length}
-					<Avatar />
+<div class="textfields">
+	<ul class={$config.position === 'left' ? 'alignLeft' : 'alignRight'}>
+		{#each $messages as message (message._id)}
+			<li
+				class={$config.theme}
+				in:scale={{
+					duration:
+						$messages.length > 3
+							? $messages.length > 6
+								? $messages.length >= $config.maxMessage - 1
+									? 100
+									: 100
+								: 250
+							: 500
+				}}
+				out:slide
+			>
+				{#if message.type == 'tchat'}
+					<p
+						in:fade={{
+							duration:
+								$messages.length > 3
+									? $messages.length > 6
+										? $messages.length >= $config.maxMessage - 1
+											? 0
+											: 50
+										: 100
+									: 200
+						}}
+					>
+						<span class="badges">
+							{#each message.tagsUrl as badge (badge)}
+								<img src={badge} alt=" " class="badge" />
+							{/each}
+						</span>
+						<b class="username" style={message.color ? 'color: ' + message.color : ''}
+							>{message.username}:</b
+						>
+						{#if $config.theme == 'glass'}
+							<br />
+						{/if}
+						<span class="message">{@html message.message}</span>
+					</p>
+				{:else}
+					<div in:fade={{ duration: 200 }} class="Embed">
+						<div class="top {message.type}">
+							{message.name}
+						</div>
+						<div class="bottom">
+							<p>{message.message}</p>
+						</div>
+					</div>
 				{/if}
-			{/if}
-		</div>
-	</div>
-
-	<Clip />
-</main>
+			</li>
+		{/each}
+	</ul>
+</div>
 
 <style>
 	:root {
