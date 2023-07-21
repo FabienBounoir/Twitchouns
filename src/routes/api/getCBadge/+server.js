@@ -1,11 +1,12 @@
+import { env } from "$env/dynamic/private";
 import { json } from "@sveltejs/kit";
 
 export const GET = async ({ params, url }) => {
 	try {
 		let channel = url?.searchParams.get("channel");
 		let broadcaster_id = await getBroadcasterId(channel);
-		const clientId = process.env.CLIENT_ID
-		const clientSecret = process.env.CLIENT_SECRET
+		const clientId = env.CLIENT_ID
+		const clientSecret = env.CLIENT_SECRET
 
 		if (!process.env.bearerToken) {
 			console.log("no token");
