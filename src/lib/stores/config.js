@@ -12,7 +12,8 @@ export const config = writable({
     badge: true,
     channels: ["badbounstv"],
     save: false,
-    maxMessage: null,
+    maxMessage: 30,
     timeMessage: '0',
     customAvatar: [],
+    color: false
 });
