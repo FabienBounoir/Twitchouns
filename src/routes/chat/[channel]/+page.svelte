@@ -23,7 +23,8 @@
 	import Linearrgb from '$lib/components/theme/linearrgb.svelte';
 	import Bluepurple from '$lib/components/theme/bluepurple.svelte';
 	import Rgb from '$lib/components/theme/rgb.svelte';
-	import Maxime from '$lib/components/theme/maxime.svelte';
+	import Default from '$lib/components/theme/default.svelte';
+	import Pivotass from '$lib/components/theme/pivotass.svelte';
 
 	// export let data;
 	$config.channels = $page.params.channel.split(',');
@@ -113,7 +114,8 @@
 		linearrgb: Linearrgb,
 		bluepurple: Bluepurple,
 		rgb: Rgb,
-		maxime: Maxime
+		default: Default,
+		pivotass: Pivotass
 	};
 </script>
 
@@ -138,11 +140,11 @@
 		>
 			<svelte:component this={components[$config.theme]} />
 
-			{#if $config.avatar != null}
+			<!-- {#if $config.avatar}
 				{#if $messages.length}
 					<Avatar />
 				{/if}
-			{/if}
+			{/if} -->
 		</div>
 	</div>
 

@@ -8,7 +8,7 @@ export const config = writable({
     theme: 'light',
     position: 'left',
     margin: [0, 0, 0, 0],
-    avatar: true,
+    avatar: false,
     badge: true,
     channels: ["badbounstv"],
     save: false,
