@@ -1,4 +1,5 @@
 <script>
+	import '@fortawesome/fontawesome-free/css/all.min.css';
 	import { config } from '$lib/stores/config';
 	import { messages } from '$lib/stores/message';
 	import { get } from 'svelte/store';
@@ -7,17 +8,29 @@
 
 	$messages = get(messages);
 	$config = get(config);
+
+	const icons = {
+		sub: 'fa-star',
+		resub: 'fa-certificate',
+		warning: 'fa-circle-exclamation',
+		cheers: 'fa-champagne-glasses',
+		ban: 'fa-ban',
+		timeout: 'fa-stopwatch'
+	};
 </script>
 
 <div class="textfields">
-	<ul class={$config.position === 'left' ? 'alignLeft' : 'alignRight'}>
+	<ul class:avatar={$config.avatar == 'true'} class:right={$config.position === 'right'}>
 		{#each $messages as message, i (message._id)}
 			{@const previous = $messages[i - 1]}
 			{@const next = $messages[i + 1]}
 			{@const first = previous?.username !== message.username}
 			{@const last = next?.username !== message.username}
 			{@const between = !first && !last}
-			<li class={$config.theme} transition:slide={{ easing: expoOut }}>
+			<li
+				class={$config.theme}
+				transition:slide={{ easing: expoOut, axis: message.type === 'tchat' ? 'y' : 'x' }}
+			>
 				{#if message.type == 'tchat'}
 					<p
 						class="message-container"
@@ -59,8 +72,8 @@
 						{/if} -->
 					</p>
 				{:else}
-					<div in:fade={{ duration: 200 }} class="Embed {message.type}">
-						{message.name}
+					<div class="Embed {message.type}">
+						<i class="fa {icons[message.type]}" />
 						{message.message}
 					</div>
 				{/if}
@@ -99,6 +112,7 @@
 			display: block;
 			width: max-content;
 			margin-bottom: 0.5rem;
+			text-shadow: 0 0.25rem 0.5rem var(--color);
 		}
 
 		.message {
@@ -168,38 +182,96 @@
 	}
 
 	.Embed {
-		padding: 2rem;
+		padding: 1rem 1rem;
+		padding-right: 2rem;
+		font-size: 1rem;
+
 		background-color: rgba(255, 255, 255, 0.7);
 		color: var(--fg);
 		border-bottom: 3px solid var(--bg);
 		text-transform: uppercase;
 		letter-spacing: 1px;
+		position: relative;
+		margin-top: 1.5rem;
+
+		--radius: 2rem;
+		--default-radius: 0;
+
+		border-radius: var(--default-radius) var(--radius) var(--radius) var(--default-radius);
+		font-weight: 600;
+		font-style: italic;
+
+		i {
+			position: absolute;
+
+			top: 0;
+			right: 0.75rem;
+
+			translate: 0 -55%;
+
+			$size: 2.25rem;
+			width: $size;
+			height: $size;
+
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+
+			background-color: var(--bg);
+
+			animation: wave 1000ms linear infinite;
+
+			@keyframes wave {
+				0% {
+					top: 0;
+					scale: 1;
+				}
+
+				33% {
+					scale: 0.95;
+				}
+
+				50% {
+					top: 0.125rem;
+				}
+
+				66% {
+					scale: 1.05;
+				}
+
+				100% {
+					top: 0rem;
+					scale: 1;
+				}
+			}
+		}
 	}
 
 	/* type de message color */
 	.ban {
-		--bg: hsla(0, 66%, 46%, 0.7);
-		--fg: hsla(0, 66%, 10%, 0.7);
+		--bg: hsla(0, 66%, 46%);
+		--fg: hsla(0, 66%, 20%);
 	}
 
 	.resub {
-		--bg: hsla(199, 69%, 46%, 0.801);
-		--fg: hsla(199, 69%, 10%, 0.801);
+		--bg: hsla(199, 69%, 46%);
+		--fg: hsla(199, 69%, 20%);
 	}
 
 	.sub {
-		--bg: hsla(199, 78%, 53%, 0.702);
-		--fg: hsla(199, 78%, 10%, 0.7);
+		--bg: hsla(199, 78%, 53%);
+		--fg: hsla(199, 78%, 20%);
 	}
 
 	.warning {
-		--bg: hsla(37, 67%, 48%, 0.7);
-		--fg: hsla(37, 67%, 10%, 0.7);
+		--bg: hsla(37, 67%, 48%);
+		--fg: hsla(37, 67%, 20%);
 	}
 
 	.cheers {
-		--bg: hsla(273, 98%, 65%, 0.7);
-		--fg: hsla(273, 98%, 10%, 0.7);
+		--bg: hsla(273, 98%, 65%);
+		--fg: hsla(273, 98%, 20%);
 	}
 
 	.alignRight {
@@ -223,10 +295,13 @@
 		font-size: 20px;
 		line-height: 23px;
 
-		width: 100%;
 		max-width: 25em;
 
 		border-radius: 10px;
+
+		&:has(.Embed) {
+			width: max-content;
+		}
 	}
 
 	.alignLeft li {
@@ -314,5 +389,63 @@
 
 	.badge {
 		width: 0.9em;
+	}
+
+	ul {
+		display: flex;
+		flex-direction: column;
+
+		&.avatar {
+			.Embed {
+				--default-radius: 1rem;
+			}
+		}
+
+		&.right {
+			align-items: flex-end;
+
+			.Embed {
+				border-radius: var(--radius) var(--default-radius) var(--default-radius) var(--radius);
+				padding: 1rem 1rem;
+				padding-left: 2rem;
+				text-align: end;
+
+				i {
+					position: absolute;
+
+					right: unset;
+					top: 0;
+					left: 0.75rem;
+				}
+			}
+
+			.message-container {
+				.username {
+					margin-left: auto;
+				}
+
+				.message {
+					padding: 0.5rem 1rem;
+					padding-left: 2rem;
+					border-radius: 1rem !important;
+				}
+
+				&.between .message,
+				&.first:not(.last) .message {
+					border-bottom-right-radius: 0.5rem;
+				}
+
+				&.between .message,
+				&.last:not(.first) .message {
+					border-top-right-radius: 0.5rem;
+				}
+
+				.badges {
+					bottom: 0;
+					left: unset;
+					right: 0.75rem;
+				}
+			}
+		}
 	}
 </style>
