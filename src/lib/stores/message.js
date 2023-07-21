@@ -31,6 +31,7 @@ export const push = (message, time = 5000) => {
 
     if ($config?.maxMessage && tchat.filter((s) => s.type == "tchat").length > parseInt($config?.maxMessage)) {
         tchat = tchat.slice(tchat.length - parseInt($config?.maxMessage));
+        console.log(tchat)
         messages.set(tchat);
     }
 

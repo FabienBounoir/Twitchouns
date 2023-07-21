@@ -40,7 +40,6 @@ export class Message {
                 for (let [badgeId, badgeElement] of Object.entries(tags["badges"])) {
                     let badge = $badges?.channels?.[channel.replace("#", "")]?.find((badge) => badge.set_id == badgeId) || $badges?.global?.find((badge) => badge.set_id == badgeId);
 
-
                     if (!badge) continue;
 
                     let badgeVersion = badge.versions.find((version) => version.id == badgeElement);
@@ -102,7 +101,7 @@ export class Message {
             color: null
         };
 
-        if (this.config.theme == "glass") {
+        if (this.config.color) {
             messageJson.color = tags["color"];
         }
 
