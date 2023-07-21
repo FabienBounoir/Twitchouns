@@ -4,8 +4,8 @@ export const GET = async ({ params, url }) => {
 	try {
 		let channel = url?.searchParams.get("channel");
 		let broadcaster_id = await getBroadcasterId(channel);
-		const clientId = process.env.clientId || "s8d4y51gcfk6ilf8x3auy0rv3f9r10"
-		const clientSecret = process.env.clientSecret || "zj3eejbs5si1x4h2rtp8323v1jt4eg"
+		const clientId = process.env.CLIENT_ID
+		const clientSecret = process.env.CLIENT_SECRET
 
 		if (!process.env.bearerToken) {
 			console.log("no token");
