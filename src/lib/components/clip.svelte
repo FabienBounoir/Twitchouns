@@ -8,6 +8,7 @@
 {#if $clip && $asVideo}
 	<video
 		class="videoClip"
+		transition:scale={{ duration: 1000, easing: quintOut }}
 		on:error={(error) => {
 			console.log(error);
 			asVideo.set(false);
