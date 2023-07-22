@@ -9,6 +9,8 @@ import { clip, asVideo } from "$lib/stores/clip"
 let msg = []
 let clip_ = ""
 
+let regexUrl = /(https?:\/\/[^\s]+)/g;
+
 messages.subscribe(value => {
     msg = value;
 })
@@ -87,6 +89,27 @@ export class Message {
                 }
             } catch (erreur) {
                 console.log(erreur);
+            }
+        }
+        else if (regexUrl.test(message)) {
+            let urls = message.match(regexUrl);
+
+            console.log(urls)
+
+            for (let url of urls) {
+                //Fetch title metadata from url
+                try {
+                    const element = await fetch(url).then((response) => response.text());
+                    if (!element) continue;
+                    const title = element.match(/<title[^>]*>([^<]+)<\/title>/)[1];
+
+                    //link regex replace by clip name
+                    message = message.replace(url, "<u>" + title + "</u>")
+                }
+                catch (error) {
+                    console.log(error);
+                    continue;
+                }
             }
         }
 

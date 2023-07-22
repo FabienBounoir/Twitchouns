@@ -1,5 +1,6 @@
 import { push } from '../stores/message'
 import { config } from "../stores/config"
+import Animation from '$lib/components/animation.svelte';
 
 let query;
 
