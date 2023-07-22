@@ -122,9 +122,12 @@
 			background-color: rgba(255 255 255 / 85%);
 			border: 1px solid white;
 			padding: 0.5rem 1rem;
-			padding-right: 2rem;
+			// padding-right: 2rem;
 			border-radius: 1rem;
 			box-shadow: 0 0.5rem 1.25rem -0.5rem var(--color);
+			width: -webkit-fill-available;
+			width: -moz-available;
+			width: fill-available;
 		}
 
 		&.first {
@@ -426,7 +429,7 @@
 
 				.message {
 					padding: 0.5rem 1rem;
-					padding-left: 2rem;
+					// padding-left: 2rem;
 					border-radius: 1rem !important;
 				}
 
