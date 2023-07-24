@@ -22,7 +22,6 @@
 	</video>
 {/if}
 
-<!-- transition:scale={{ duration: 1000, easing: quintOut }} -->
 <style scope>
 	.videoClip {
 		position: fixed;
