@@ -5,6 +5,7 @@ import { push, messages } from '$lib/stores/message'
 import { badges } from "$lib/stores/badges"
 import { randomAvatar } from "$lib/stores/avatar"
 import { clip, asVideo } from "$lib/stores/clip"
+import messageDebug from "$lib/assets/messages.json"
 
 let msg = []
 let clip_ = ""
@@ -23,6 +24,10 @@ export class Message {
     constructor(config) {
         this.config = config;
         this.eventName = "message";
+
+        if (this.config.debug == "true") {
+            messages.set(messageDebug);
+        }
     }
 
     getEventName() {
@@ -99,12 +104,12 @@ export class Message {
             for (let url of urls) {
                 //Fetch title metadata from url
                 try {
-                    const element = await fetch(url).then((response) => response.text());
-                    if (!element) continue;
-                    const title = element.match(/<title[^>]*>([^<]+)<\/title>/)[1];
+                    const element = await fetch('/api/infolink?url=' + url).then((response) => response.json());
+                    if (!element || (!element.title)) continue;
+
 
                     //link regex replace by clip name
-                    message = message.replace(url, "<u>" + title + "</u>")
+                    message = message.replace(url, "<u>" + element.title + "</u>")
                 }
                 catch (error) {
                     console.log(error);
