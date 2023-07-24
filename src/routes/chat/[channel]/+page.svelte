@@ -123,6 +123,8 @@
 </svelte:head>
 
 {#if $config.debug}
+	<div class="debug-background" />
+
 	<pre style="position: absolute;">{JSON.stringify($config, null, 2)}</pre>
 {/if}
 
@@ -160,22 +162,6 @@
 			'Open Sans', 'Helvetica Neue', sans-serif;
 	}
 
-	.glass p .username {
-		font-size: 0.8em;
-		font-weight: normal;
-	}
-
-	.glass p .badge {
-		vertical-align: middle;
-	}
-
-	.glass p .lineargradient {
-		/* -webkit-mask-size: 300px 100vh; */
-		/* -webkit-mask-image: -webkit-gradient(linear, center top, center bottom, 
-        color-stop(0.00,  rgba(0,0,0,0)),
-        color-stop(1.00,  rgba(0,0,0,1))); */
-	}
-
 	*,
 	*::after,
 	*::before {
@@ -187,6 +173,16 @@
 	:global(body) {
 		overflow: hidden;
 		overflow-x: hidden;
+	}
+
+	.debug-background {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+
+		background: url('https://media.discordapp.net/attachments/1014101467126304798/1131938692437655633/image.png?width=2060&height=1288');
 	}
 
 	.animationAvatar {
@@ -281,27 +277,6 @@
 		grid-area: Bottom;
 	}
 
-	/* type de message color */
-	.ban {
-		background: rgba(195, 40, 40, 0.7);
-	}
-
-	.resub {
-		background: rgba(37, 149, 200, 0.801);
-	}
-
-	.sub {
-		background: rgba(43, 170, 229, 0.7);
-	}
-
-	.warning {
-		background: rgba(206, 142, 41, 0.7);
-	}
-
-	.cheers {
-		background: rgba(175, 77, 253, 0.7);
-	}
-
 	.alignRight {
 		text-align: -webkit-right;
 	}
@@ -340,159 +315,6 @@
 		text-align: right;
 	}
 
-	/* ////////////////////// theme ////////////////////: */
-
-	.white {
-		color: #fff;
-		border: 1px solid rgba(255, 255, 255, 0.3);
-		/* background: rgba(218, 218, 218, 0.6); */
-		background: rgba(199, 199, 199, 0.646);
-		box-shadow: 0 8px 12px 0 rgba(31, 38, 135, 0.37);
-		text-shadow: 0 2px 4px rgb(0 0 0 / 66%);
-		/* text-shadow: 0 2px 4px rgb(71 97 206 / 36%);  */
-	}
-
-	.glass {
-		background-color: rgba(42, 42, 42, 0.98);
-		border-radius: 0.3em;
-		padding: 0.2em;
-		min-width: 25em;
-		margin: 5px 10px;
-		color: rgb(255, 255, 255);
-	}
-
-	.glass p .username {
-		font-size: 0.8em;
-		font-size: 200;
-	}
-
-	.glass p .message {
-		font-size: 1em;
-		font-weight: 300;
-	}
-
-	.glass:last-child {
-		margin-bottom: 10px;
-	}
-
-	.glass p {
-		margin: 10px;
-	}
-
-	.flatwhite {
-		color: black;
-		border: 1px solid rgba(255, 255, 255, 0.3);
-		background: white;
-		box-shadow: 0 5px 8px 0 rgb(31 38 135 / 37%);
-	}
-
-	.flatdark {
-		color: white;
-		border: 1px solid rgba(255, 255, 255, 0.3);
-		background: black;
-		box-shadow: 0 5px 8px 0 rgb(31 38 135 / 37%);
-	}
-
-	.linearrgb {
-		color: white;
-		border: 1px solid rgb(255, 255, 255);
-		background: linear-gradient(
-			-45deg,
-			rgba(238, 118, 82, 0.85),
-			rgba(231, 60, 126, 0.85),
-			rgba(35, 165, 213, 0.85),
-			rgba(35, 213, 171, 0.85)
-		);
-		background-size: 400% 400%;
-		animation: gradient 15s ease infinite;
-		box-shadow: 0 5px 8px 0 rgb(31 38 135 / 37%);
-	}
-
-	.bluepurple {
-		color: white;
-		border: 1px solid rgba(11, 4, 213, 0.731);
-		background: linear-gradient(-45deg, rgba(35, 165, 213, 0.7), rgba(148, 35, 213, 0.7));
-		background-size: 400% 400%;
-		animation: gradient 7s ease infinite;
-		box-shadow: 0 5px 8px 0 rgb(31 38 135 / 37%);
-	}
-
-	@keyframes gradient {
-		0% {
-			background-position: 0% 50%;
-		}
-		50% {
-			background-position: 100% 50%;
-		}
-		100% {
-			background-position: 0% 50%;
-		}
-	}
-
-	.rgb {
-		color: #fff;
-		border: 1px solid rgba(255, 255, 255, 0.3);
-		/* background: rgba(218, 218, 218, 0.6); */
-		background: rgba(199, 199, 199, 0.646);
-		box-shadow: 0 8px 12px 0 rgba(31, 38, 135, 0.37);
-		text-shadow: 0 2px 4px rgb(0 0 0 / 66%);
-		background-color: rgba(255, 0, 0, 0.6);
-		animation: RGBWhiteMode 5s infinite linear;
-	}
-
-	@keyframes RGBWhiteMode {
-		0% {
-			background-color: rgba(193, 0, 0, 0.6);
-		}
-		12.5% {
-			background-color: rgba(176, 58, 46, 0.6);
-		}
-		25% {
-			background-color: rgba(175, 96, 26, 0.6);
-		}
-		37.5% {
-			background-color: rgba(183, 149, 11, 0.6);
-		}
-		50% {
-			background-color: rgba(35, 155, 86, 0.6);
-		}
-		62.5% {
-			background-color: rgba(40, 116, 166, 0.6);
-		}
-		75% {
-			background-color: rgba(31, 97, 141, 0.6);
-		}
-		87.5% {
-			background-color: rgba(108, 52, 131, 0.6);
-		}
-		100% {
-			background-color: rgba(193, 0, 0, 0.6);
-		}
-	}
-
-	.dark {
-		/* color: #101010; */
-		border: 1px solid rgba(0, 0, 0, 0.3);
-		box-shadow: 0 8px 12px 0 rgba(31, 38, 135, 0.37);
-		/* text-shadow: 0 2px 4px rgb(150 155 176 / 36%); */
-		/* background: rgb(44, 40, 40, 0.25); */
-
-		/* text-shadow: 0 1px 4px rgb(150 155 176 / 76%); */
-		background: rgb(44, 40, 40, 0.6);
-		color: #e3dfdf;
-		/* background: rgb(100, 100, 100, 0.8); */
-	}
-
-	/* //////////////////// Theme //////////////////// */
-
-	.badge {
-		margin: 0 0 0 0.12em;
-	}
-
-	.badge:first-child {
-		margin: 0;
-	}
-
 	li p {
 		margin: 10px 20px 10px 20px;
 		font-weight: 350;
@@ -515,9 +337,5 @@
 
 	.emote {
 		width: 1.5em;
-	}
-
-	.badge {
-		width: 0.9em;
 	}
 </style>
