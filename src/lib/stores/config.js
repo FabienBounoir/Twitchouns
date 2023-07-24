@@ -10,7 +10,7 @@ export const config = writable({
     margin: [0, 0, 0, 0],
     avatar: false,
     badge: true,
-    channels: ["badbounstv"],
+    channels: [],
     save: false,
     maxMessage: 30,
     timeMessage: '0',

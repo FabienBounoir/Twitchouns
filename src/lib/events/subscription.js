@@ -13,7 +13,7 @@ config.subscribe(value => {
 export class Subscription {
     constructor(config) {
         this.config = config;
-        this.eventName = 'subscription';
+        this.eventName = 'sub';
     }
 
     getEventName() {
