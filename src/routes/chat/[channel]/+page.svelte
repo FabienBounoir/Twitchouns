@@ -25,6 +25,8 @@
 	import Rgb from '$lib/components/theme/rgb.svelte';
 	import Default from '$lib/components/theme/default.svelte';
 	import Pivotass from '$lib/components/theme/pivotass.svelte';
+	import Neon from '$lib/components/theme/neon.svelte';
+	import Animation from '$lib/components/animation.svelte';
 
 	// export let data;
 	$config.channels = $page.params.channel.split(',');
@@ -101,10 +103,6 @@
 	getCBadge();
 	randomAvatar();
 
-	setTimeout(() => {
-		console.log($badges);
-	}, 10000);
-
 	const components = {
 		dark: Dark,
 		light: Light,
@@ -115,13 +113,20 @@
 		bluepurple: Bluepurple,
 		rgb: Rgb,
 		default: Default,
-		pivotass: Pivotass
+		pivotass: Pivotass,
+		neon: Neon
 	};
 </script>
+
+<svelte:head>
+	<title>💭 Overlay {$config.channels}</title>
+</svelte:head>
 
 {#if $config.debug}
 	<pre style="position: absolute;">{JSON.stringify($config, null, 2)}</pre>
 {/if}
+
+<Animation />
 
 <main>
 	<div id="saver">
@@ -140,11 +145,9 @@
 		>
 			<svelte:component this={components[$config.theme]} />
 
-			<!-- {#if $config.avatar}
-				{#if $messages.length}
-					<Avatar />
-				{/if}
-			{/if} -->
+			{#if $config.avatar == 'true' && $messages.length}
+				<Avatar />
+			{/if}
 		</div>
 	</div>
 

@@ -43,21 +43,36 @@
 								<img src={badge} alt=" " class="badge" />
 							{/each}
 						</span>
-						<b class="username" style={message.color ? 'color: ' + message.color : ''}
-							>{message.username}:</b
-						>
+						<b class="username" style:--color={message.color}>{message.username}:</b>
 
 						<span class="message">{@html message.message}</span>
 					</p>
 				{:else}
-					<div in:fade={{ duration: 200 }} class="Embed">
+					<p
+						class={message.type}
+						in:fade={{
+							duration:
+								$messages.length > 3
+									? $messages.length > 6
+										? $messages.length >= $config.maxMessage - 1
+											? 0
+											: 50
+										: 100
+									: 200
+						}}
+					>
+						<b class="username">{message.name}:</b>
+
+						<span class="message">{@html message.message}</span>
+					</p>
+					<!-- <div in:fade={{ duration: 200 }} class="Embed">
 						<div class="top {message.type}">
 							{message.name}
 						</div>
 						<div class="bottom">
 							<p>{message.message}</p>
 						</div>
-					</div>
+					</div> -->
 				{/if}
 			</li>
 		{/each}
@@ -81,6 +96,35 @@
 	:global(body) {
 		overflow: hidden;
 		overflow-x: hidden;
+	}
+
+	.username {
+		color: var(--color, --fg);
+	}
+
+	.ban {
+		color: hsla(0, 66%, 46%);
+		text-shadow: 0 0.5px 7px hsla(0, 66%, 20%);
+	}
+
+	.resub {
+		color: hsla(199, 69%, 46%);
+		text-shadow: 0 0.5px 7px hsla(199, 69%, 20%);
+	}
+
+	.sub {
+		color: hsla(199, 78%, 53%);
+		text-shadow: 0 0.5px 7px hsla(199, 78%, 20%);
+	}
+
+	.warning {
+		color: hsla(37, 67%, 48%);
+		text-shadow: 0 0.5px 7px hsla(37, 67%, 20%);
+	}
+
+	.cheers {
+		color: hsla(273, 98%, 65%);
+		text-shadow: 0 0.5px 7px hsla(273, 98%, 20%);
 	}
 
 	.textfields {
@@ -114,27 +158,6 @@
 
 	.bottom {
 		grid-area: Bottom;
-	}
-
-	/* type de message color */
-	.ban {
-		background: rgba(195, 40, 40, 0.7);
-	}
-
-	.resub {
-		background: rgba(37, 149, 200, 0.801);
-	}
-
-	.sub {
-		background: rgba(43, 170, 229, 0.7);
-	}
-
-	.warning {
-		background: rgba(206, 142, 41, 0.7);
-	}
-
-	.cheers {
-		background: rgba(175, 77, 253, 0.7);
 	}
 
 	.alignRight {
