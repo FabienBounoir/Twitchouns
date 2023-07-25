@@ -5,7 +5,7 @@ import { writable } from 'svelte/store';
  */
 export const config = writable({
     events: ['message'],
-    theme: 'light',
+    theme: 'Light',
     position: 'left',
     margin: [0, 0, 0, 0],
     avatar: false,
@@ -17,4 +17,5 @@ export const config = writable({
     customAvatar: [],
     color: false,
     debug: false,
+    blacklist: []
 });
