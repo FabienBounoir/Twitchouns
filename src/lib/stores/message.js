@@ -23,9 +23,8 @@ messages.subscribe(value => {
 export const push = (message, time = 5000) => {
     const $config = get(config);
 
-
-    message._id = v4();
-    messages.update(n => [...n, message]);
+    message._id = v4()
+    messages.update(n => [...n, { ...message }]);
 
     // console.log(tchat);
 
