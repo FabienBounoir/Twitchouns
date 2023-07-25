@@ -36,7 +36,7 @@ export class Message {
 
     async run(channel, tags, message, self) {
         if (tags["message-type"] == "whisper") return;
-        if (this.config?.blacklist?.split(",").includes(tags["display-name"].toLowerCase())) return;
+        if (this.config?.blacklist?.includes(tags["display-name"].toLowerCase())) return;
 
         let tagsUrl = [];
 
