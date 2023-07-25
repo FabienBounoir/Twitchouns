@@ -13,7 +13,7 @@ config.subscribe(value => {
 export class Resub {
     constructor(configuration) {
         this.config = configuration;
-        this.eventName = 'resub';
+        this.eventName = "sub"//'resub';
     }
 
     getEventName() {
@@ -23,7 +23,7 @@ export class Resub {
     async run(channel, username, months, message, userstate, methods) {
         setAvatar(fete);
 
-        if (this.config.animsub === "true" || false) {
+        if (this.config.animsub) {
             // animation(
             //     query?.customSub?.split(",") || [
             //         bleucyan,

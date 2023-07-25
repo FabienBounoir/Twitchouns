@@ -4,18 +4,18 @@ import { writable } from 'svelte/store';
  * @typedef {Object} config
  */
 export const config = writable({
+    channels: [],
     events: ['message'],
     theme: 'Light',
     position: 'left',
-    margin: [0, 0, 0, 0],
     avatar: false,
-    badge: true,
-    channels: [],
     save: false,
+    badge: true,
+    color: true,
     maxMessage: 30,
     timeMessage: '0',
+    blacklist: [],
     customAvatar: [],
-    color: false,
-    debug: false,
-    blacklist: []
+    margin: [0, 0, 0, 0],
+    debug: false
 });

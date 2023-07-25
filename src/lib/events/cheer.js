@@ -19,7 +19,7 @@ export class Cheer {
     }
 
     async run(channel, userstate, message) {
-        if (this.config.animcheer === "true") {
+        if (this.config.animcheer === true) {
             // animation(
             //     query?.customCheers?.split(",") || [bits],
             //     100,

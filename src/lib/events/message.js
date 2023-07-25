@@ -25,7 +25,7 @@ export class Message {
         this.config = config;
         this.eventName = "message";
 
-        if (this.config.debug == "true") {
+        if (this.config.debug) {
             messages.set(messageDebug);
         }
     }
@@ -87,7 +87,7 @@ export class Message {
                 //link regex replace by clip name
                 message = message.replace(/(https?:\/\/[^\s]+)/g, "<u>" + data.data[0].title + "</u>")
 
-                if (channel == "#bounsbot" || (channel == "#" + data.data[0].broadcaster_name.toLowerCase() && this.config.clip == "true")) {
+                if (channel == "#bounsbot" || (channel == "#" + data.data[0].broadcaster_name.toLowerCase() && this.config.clip)) {
                     console.log(data.data[0].thumbnail_url.split("-preview")[0] + ".mp4");
                     clip.set(data.data[0].thumbnail_url.split("-preview")[0] + ".mp4");
                     asVideo.set(true)

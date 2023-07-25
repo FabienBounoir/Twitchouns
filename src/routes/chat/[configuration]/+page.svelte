@@ -28,20 +28,16 @@
 	import Neon from '$lib/components/theme/neon.svelte';
 	import Animation from '$lib/components/animation.svelte';
 
-	// export let data;
-	$config.channels = $page.params.channel.split(',');
+	let configUrl = {};
 
-	let tchat = [];
+	if ($page.params.configuration) {
+		configUrl = JSON.parse(atob($page.params.configuration));
+	}
 
-	location.search.split(/[?&]/g).reduce((a, pair) => {
-		if (!pair.trim()) return a;
-		const [key, value] = pair.split('=');
-		$config[key] = value.includes(',') ? value.split(',') : value;
-		return a;
-	}, {});
+	$config = { ...$config, ...configUrl };
 
 	// &customAvatar=https://media.discordapp.net/attachments/1014101467126304798/1126123705878183937/fire_3d_1.png,https://cdn.discordapp.com/attachments/1014101467126304798/1122909288600436787/radio_3d_2.png,https://media.discordapp.net/attachments/1014101467126304798/1122909148204515388/broom_3d.png,https://cdn.discordapp.com/attachments/1014101467126304798/1122908832994177166/detective_3d_default_1.png
-	console.log($config);
+	console.log('Configuration generate', $config);
 
 	let tchatMax = 10;
 
@@ -62,17 +58,14 @@
 
 	////// init all Event ///////
 	for (let event of Object.values(events)) {
-		console.log(event);
 		let eventInit = new event($config);
-		console.log(eventInit.getEventName());
+
 		if (
 			$config.events.includes(eventInit.getEventName()) ||
 			['clearchat', 'messagedeleted'].includes(eventInit.getEventName())
 		) {
-			console.log('add ' + eventInit.getEventName());
 			client.on(eventInit.getEventName(), (...args) => eventInit.run(...args));
 		} else {
-			console.log('continue ' + eventInit.getEventName());
 			continue;
 		}
 	}
@@ -104,17 +97,17 @@
 	randomAvatar();
 
 	const components = {
-		dark: Dark,
-		light: Light,
-		glass: Glass,
-		flatwhite: Flatwhite,
-		flatdark: Flatdark,
-		linearrgb: Linearrgb,
-		bluepurple: Bluepurple,
-		rgb: Rgb,
-		default: Default,
-		pivotass: Pivotass,
-		neon: Neon
+		Default: Default,
+		Dark: Dark,
+		Light: Light,
+		Glass: Glass,
+		'High Contrast Dark': Flatwhite,
+		'High Contrast Light': Flatdark,
+		'linear rgb': Linearrgb,
+		'Blue & Purple': Bluepurple,
+		'Arc-en-ciel': Rgb,
+		Pivotass: Pivotass,
+		Neon: Neon
 	};
 </script>
 
@@ -147,7 +140,7 @@
 		>
 			<svelte:component this={components[$config.theme]} />
 
-			{#if $config.avatar == 'true' && $messages.length}
+			{#if $config.avatar && $messages.length}
 				<Avatar />
 			{/if}
 		</div>

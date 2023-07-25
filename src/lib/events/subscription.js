@@ -22,7 +22,7 @@ export class Subscription {
 
     async run(channel, username, method, message, userstate) {
         setAvatar(love);
-        if (query.animsub === "true") {
+        if (query.animsub) {
             // animation(
             //     query?.customSub?.split(",") || [
             //         bleucyan,

@@ -36,12 +36,32 @@
 
 	randomAvatar();
 
-	let pageTotal = 6;
+	let pageTotal = 8;
 	let activePage = 0;
 
 	let channel = '';
 	let blacklist = '';
 	let customAvatar = '';
+
+	let badgets = [];
+
+	const getGBadge = async () => {
+		const res = await fetch('/api/getGBadge');
+		const data = await res.json();
+
+		if (data && data.data && data.data.length > 0) {
+			for (let element of data.data) {
+				let lien =
+					element.versions[0].image_url_4x ||
+					element.versions[0].image_url_2x ||
+					element.versions[0].image_url_1x;
+
+				badgets.push(lien);
+			}
+		}
+	};
+
+	getGBadge();
 
 	const components = {
 		Default: Default,
@@ -57,21 +77,30 @@
 		Neon: Neon
 	};
 
+	// const MessageInfo = [
+	// 	'Bienvenue sur la page de configuration de votre tchat twitch',
+	// 	'Pour commencer, veuillez entre votre nom de chaine twitch',
+	// 	'Ensuite, choisissez le theme de votre tchat',
+	// 	'Choisissez la position de votre tchat',
+	// 	'Choisissez la taille de votre tchat',
+	// 	'Choisissez la couleur de votre tchat',
+	// 	'Choisissez les events que vous voulez afficher',
+	// 	'Choisissez les personnes a ne pas afficher dans votre tchat'
+	// ];
+
 	const MessageInfo = [
-		'Bienvenue sur la page de configuration de votre tchat twitch',
-		'Pour commencer, veuillez entre votre nom de chaine twitch',
-		'Ensuite, choisissez le theme de votre tchat',
-		'Choisissez la position de votre tchat',
-		'Choisissez la taille de votre tchat',
-		'Choisissez la couleur de votre tchat',
-		'Choisissez les events que vous voulez afficher',
-		'Choisissez les personnes a ne pas afficher dans votre tchat'
+		'Oh bienvenue à toi ❤️',
+		"J'espere que tu vas bien",
+		'Tu es actuellement sur la page pour me configurer',
+		"Pour cela rien de plus simple il suffit de choisir les chaines sur lesquelles tu veux que j'écoute",
+		'Puis de choisir les interactions que tu veux',
+		"Et pour finir de copier le lien est de l'intégrer dans une source navigateur sur OBS"
 	];
 
 	const randomColorHexaCode = () => {
-		let letters = '0123456789ABCDEF';
+		let letters = '012345678';
 		let color = '#';
-		for (let i = 0; i < 6; i++) color += letters[Math.floor(Math.random() * 16)];
+		for (let i = 0; i < 6; i++) color += letters[Math.floor(Math.random() * letters.length)];
 		return color;
 	};
 
@@ -161,16 +190,30 @@
 
 	const demoMessage = () => {
 		console.log('Nouveau message');
-		push({
+
+		let messageTest = {
 			message: MessageInfo[actualMessage],
 			username: usernames[Math.floor(Math.random() * usernames.length)],
 			type: 'tchat',
-			tagsUrl: [
-				'https://static-cdn.jtvnw.net/badges/v1/b80f038a-0a47-4e24-b48f-63ab7cecbee5/3',
-				'https://static-cdn.jtvnw.net/badges/v1/5864739a-5e58-4623-9450-a2c0555ef90b/3'
-			],
-			color: randomColorHexaCode()
-		});
+			tagsUrl: []
+		};
+
+		if (configuration.badge && badgets.length > 0) {
+			let nbBadge = Math.floor(Math.random() * 3) + 1;
+
+			for (let i = 0; i < nbBadge; i++) {
+				let badge = badgets[Math.floor(Math.random() * badgets.length)];
+				if (!messageTest.tagsUrl.includes(badge)) {
+					messageTest.tagsUrl.push(badge);
+				}
+			}
+		}
+
+		if (configuration.color) {
+			messageTest.color = randomColorHexaCode();
+		}
+
+		push(messageTest, 20000);
 
 		randomAvatar();
 
@@ -188,6 +231,8 @@
 
 	let canNext = true;
 
+	let link = '';
+
 	const checkNext = () => {
 		if (activePage == 1) {
 			canNext = configuration.channels.length > 0;
@@ -197,18 +242,35 @@
 			canNext = true;
 		}
 	};
+
+	const generateLink = () => {
+		link = `${window.location.origin}/chat/${btoa(JSON.stringify(configuration))}`;
+
+		navigator.clipboard.writeText(link).then(
+			function () {
+				push({
+					message: `Lien copié dans le presse papier`,
+					name: 'Information',
+					type: 'sub'
+				});
+			},
+			function () {
+				console.log('Copie echoué');
+			}
+		);
+	};
 </script>
 
 <svelte:head>
 	<title>⚙️ Overlay Configuration</title>
 </svelte:head>
 
-<h1>Bienvenue sur la page de Config de Twitchouns</h1>
+<!-- <h1>Bienvenue sur la page de Config de Twitchouns</h1>
 <pre style="color:white; position: fixed; z-index:999">{JSON.stringify(
 		configuration,
 		null,
 		2
-	)}</pre>
+	)}</pre> -->
 
 <main id="chat-container">
 	<div id="saver">
@@ -218,11 +280,11 @@
 				.margin[0]}px; margin-left: {configuration.margin[3]}px; margin-right: {configuration
 				.margin[1]}px;"
 		>
-			{#key configuration.position}
+			{#key configuration.position || configuration.avatar}
 				<svelte:component this={components[configuration.theme]} />
 			{/key}
 
-			{#if configuration.avatar == 'true' && msg.length}
+			{#if configuration.avatar && msg.length}
 				<Avatar />
 			{/if}
 		</div>
@@ -266,7 +328,7 @@
 								configuration.channels = [...configuration.channels, channel.toLowerCase()];
 								push({
 									message: `La chaine ${channel} a bien été ajouté`,
-									name: 'Info',
+									name: 'Information',
 									type: 'cheers'
 								});
 
@@ -291,7 +353,7 @@
 
 							push({
 								message: `La chaine ${channel} a bien été ajouté`,
-								name: 'Info',
+								name: 'Information',
 								type: 'cheers'
 							});
 
@@ -348,6 +410,56 @@
 					{/each}
 				</select>
 			{:else if activePage == 4}
+				<p>Voulez vous <b>afficher les badges</b> des <u>utilisateurs</u> dans le chat ?</p>
+				<button
+					on:click={() => {
+						configuration.badge = !configuration.badge;
+
+						let element = [];
+
+						if (configuration.badge) {
+							let nbBadge = Math.floor(Math.random() * 3) + 1;
+
+							for (let i = 0; i < nbBadge; i++) {
+								let badge = badgets[Math.floor(Math.random() * badgets.length)];
+								if (!element.includes(badge)) {
+									element.push(badge);
+								}
+							}
+						}
+
+						msg.map((e) => {
+							e.tagsUrl = element;
+						});
+
+						messages.set(msg);
+					}}
+				>
+					{#if configuration.badge}
+						Désactiver
+					{:else}
+						Activer
+					{/if}
+				</button>
+			{:else if activePage == 5}
+				<p>Voulez vous <b>afficher les couleurs</b> des <u>utilisateurs</u> dans le chat ?</p>
+				<button
+					on:click={() => {
+						configuration.color = !configuration.color;
+
+						msg.map((e) => {
+							e.color = configuration.color ? randomColorHexaCode() : null;
+						});
+						messages.set(msg);
+					}}
+				>
+					{#if configuration.color}
+						Désactiver
+					{:else}
+						Activer
+					{/if}
+				</button>
+			{:else if activePage == 6}
 				<p>De quel <b>côté</b> souhaitez-vous afficher votre tchat ? 📝</p>
 				<div class="list">
 					<p>
@@ -374,7 +486,7 @@
 						</label>
 					</p>
 				</div>
-			{:else if activePage == 5}
+			{:else if activePage == 7}
 				<p>Ne pas afficher certaine personne dans votre tchat, c'est possible ! 🤫</p>
 
 				<div class="inputContainer">
@@ -428,29 +540,29 @@
 						</p>
 					{/each}
 				</div>
-			{:else if activePage == 6}
+			{:else if activePage == 8}
 				<p>Voulez vous avoir un avatar à coté de votre tchat</p>
 				<button
 					on:click={() => {
-						configuration.avatar = configuration.avatar == 'true' ? 'false' : 'true';
+						configuration.avatar = !configuration.avatar;
 					}}
 				>
-					{#if configuration.avatar == 'true'}
+					{#if configuration.avatar}
 						Désactiver
 					{:else}
 						Activer
 					{/if}
 				</button>
 
-				{#if configuration.avatar == 'true'}
+				{#if configuration.avatar}
 					<br />
 					<p>Vous pouvez mettre des avatars custom en ajoutant les liens des images ici:</p>
 					<div class="inputContainer">
 						<input
 							type="text"
 							bind:value={customAvatar}
-							placeholder="nightbot"
-							on:keyup={(e) => {
+							placeholder="https://i.imgur.com/6e4RRRF.gif"
+							on:keyup={async (e) => {
 								if (e.key == 'Enter') {
 									if (!customAvatar || configuration.customAvatar.includes(customAvatar)) return;
 									if (!urlRegex.test(customAvatar)) {
@@ -462,13 +574,26 @@
 										return;
 									}
 
+									let info = await fetch(customAvatar).catch(() => {});
+									console.log(info);
+
+									if (!info || info.status >= 300 || info.status < 200) {
+										push({
+											message: `Le liens fournis n'est pas valide: \n ${info.status} ${info.statusText}`,
+											name: 'Erreur',
+											type: 'ban'
+										});
+										return;
+									}
+
 									configuration.customAvatar = [...configuration.customAvatar, customAvatar];
+									randomAvatar();
 									customAvatar = '';
 								}
 							}}
 						/>
 						<button
-							on:click={() => {
+							on:click={async () => {
 								if (!customAvatar || configuration.customAvatar.includes(customAvatar)) return;
 								if (!urlRegex.test(customAvatar)) {
 									push({
@@ -479,7 +604,21 @@
 
 									return;
 								}
+
+								let info = await fetch(customAvatar).catch(() => {});
+								console.log(info);
+
+								if (!info || info.status >= 300 || info.status < 200) {
+									push({
+										message: `Le liens fournis n'est pas valide: \n ${info.status} ${info.statusText}`,
+										name: 'Erreur',
+										type: 'ban'
+									});
+									return;
+								}
+
 								configuration.customAvatar = [...configuration.customAvatar, customAvatar];
+								randomAvatar();
 								customAvatar = '';
 							}}>Ajouter</button
 						>
@@ -492,13 +631,26 @@
 									configuration.customAvatar = configuration.customAvatar.filter(
 										(c) => c != customAvatar
 									);
+									randomAvatar();
 								}}
 							>
-								{customAvatar}
+								{customAvatar.split('/').pop().split('?')[0]}
 							</p>
 						{/each}
 					</div>
 				{/if}
+			{:else if activePage == 9}
+				<p>
+					Vous êtes maintenant prêt à <b>utiliser votre tchat</b>, Il ne vous reste plus qu'a
+					<u>ajouter le liens</u>
+					suivant dans votre <b>scene</b>
+				</p>
+
+				<textarea
+					bind:value={link}
+					style="width: 100%; height: 100px; resize: none; border-radius: 5px; border: solid; padding: 5px 10px; background-color: #f0f0f0; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);"
+					readonly
+				/>
 			{/if}
 		</div>
 
@@ -513,6 +665,8 @@
 					on:click={() => {
 						if (activePage == pageTotal) {
 							console.log('Fin de la configuration');
+							generateLink();
+							activePage++;
 						} else {
 							activePage++;
 						}
@@ -580,6 +734,14 @@
 				gap: 10px;
 
 				input {
+					padding: 5px 10px;
+					border-radius: 5px;
+					border: solid;
+					// background-color: #ff6d6d;
+					box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+				}
+
+				textarea {
 					padding: 5px 10px;
 					border-radius: 5px;
 					border: solid;
@@ -690,7 +852,9 @@
 		width: 100%;
 		height: 100%;
 		/* background-image: url("./assets/background.png"); */
-		background-size: cover;
+		background-size: auto;
+		background-image: url('/noise-light.png');
+		background-color: rgb(51 0 106);
 	}
 
 	div#saver img.animationAvatar {

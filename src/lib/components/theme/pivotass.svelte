@@ -20,7 +20,7 @@
 </script>
 
 <div class="textfields">
-	<ul class:avatar={$config.avatar == 'true'} class:right={$config.position === 'right'}>
+	<ul class:avatar={$config.avatar} class:right={$config.position === 'right'}>
 		{#each $messages as message, i (message._id)}
 			{@const previous = $messages[i - 1]}
 			{@const next = $messages[i + 1]}

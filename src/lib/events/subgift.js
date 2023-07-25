@@ -24,7 +24,7 @@ export class SubGift {
         let senderCount = ~~userstate["msg-param-sender-count"];
 
         setAvatar(explosion);
-        if (query.animsubgift === "true") {
+        if (query.animsubgift) {
             // animation(
             //     query?.customSubGif?.split(",") || [
             //         bleucyan,
