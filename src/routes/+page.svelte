@@ -21,6 +21,38 @@
 	let container;
 	let msg = [];
 
+	///////////////////
+
+	import { expoOut } from 'svelte/easing';
+	import { tweened } from 'svelte/motion';
+
+	let heightTarget = tweened(0, {
+		easing: expoOut,
+		duration: 1000
+	});
+
+	/**
+	 * @param {HTMLElement} node
+	 * @param {number} index
+	 */
+	const childrenHeightAt = (node, index) => {
+		/**
+		 * @param {typeof index} index
+		 */
+		const update = (index) => {
+			const child = node.children[index];
+			const childRect = child.getBoundingClientRect();
+
+			$heightTarget = childRect.height;
+		};
+
+		update(index);
+
+		return { update };
+	};
+
+	//////////////////
+
 	const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
 	const twitchUsernameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_-]{3,24}$/;
 
@@ -295,26 +327,59 @@
 
 <div class="configuration">
 	<div class="container" bind:this={container}>
-		<div class="body">
-			<h2>✨ Twitchouns ✨</h2>
-			{#if activePage == 0}
-				<p>
-					Bienvenue sur <u>la page de configuration</u> du meilleur tchat twitch, cliquez sur
-					<b>Commencer la configuration</b> pour debuter la configuration et obtenir le liens à ajouter
-					au votre scene.
-				</p>
-			{:else if activePage == 1}
-				<p>
-					Qu'elles sont <b>les chaines</b> que vous <u>souhaitez afficher</u> dans votre tchat ? 📹
-				</p>
+		<h2>✨ Twitchouns ✨</h2>
+		{#key configuration}
+			<div
+				class="body"
+				style:height="{$heightTarget}px"
+				style:--page={activePage}
+				use:childrenHeightAt={activePage}
+			>
+				<div class="page">
+					<!-- {#if activePage == 0} -->
+					<p>
+						Bienvenue sur <u>la page de configuration</u> du meilleur tchat twitch, cliquez sur
+						<b>Commencer la configuration</b> pour debuter la configuration et obtenir le liens à ajouter
+						au votre scene.
+					</p>
+				</div>
+				<!-- {:else if activePage == 1} -->
+				<div class="page">
+					<p>
+						Qu'elles sont <b>les chaines</b> que vous <u>souhaitez afficher</u> dans votre tchat ? 📹
+					</p>
 
-				<div class="inputContainer">
-					<input
-						type="text"
-						bind:value={channel}
-						placeholder="Nom de votre chaine twitch"
-						on:keyup={(e) => {
-							if (e.key == 'Enter') {
+					<div class="inputContainer">
+						<input
+							type="text"
+							bind:value={channel}
+							placeholder="Nom de votre chaine twitch"
+							on:keyup={(e) => {
+								if (e.key == 'Enter') {
+									if (!channel || configuration.channels.includes(channel)) return;
+									if (!twitchUsernameRegex.test(channel)) {
+										push({
+											message: `Le nom de chaine fournis n'est pas valide`,
+											name: 'Erreur',
+											type: 'ban'
+										});
+										return;
+									}
+
+									configuration.channels = [...configuration.channels, channel.toLowerCase()];
+									push({
+										message: `La chaine ${channel} a bien été ajouté`,
+										name: 'Information',
+										type: 'cheers'
+									});
+
+									channel = '';
+								}
+							}}
+						/>
+						<button
+							disabled={!channel || configuration.channels.includes(channel)}
+							on:click={() => {
 								if (!channel || configuration.channels.includes(channel)) return;
 								if (!twitchUsernameRegex.test(channel)) {
 									push({
@@ -325,7 +390,8 @@
 									return;
 								}
 
-								configuration.channels = [...configuration.channels, channel.toLowerCase()];
+								configuration.channels = [...configuration.channels, channel];
+
 								push({
 									message: `La chaine ${channel} a bien été ajouté`,
 									name: 'Information',
@@ -333,170 +399,175 @@
 								});
 
 								channel = '';
-							}
-						}}
-					/>
-					<button
-						disabled={!channel || configuration.channels.includes(channel)}
-						on:click={() => {
-							if (!channel || configuration.channels.includes(channel)) return;
-							if (!twitchUsernameRegex.test(channel)) {
-								push({
-									message: `Le nom de chaine fournis n'est pas valide`,
-									name: 'Erreur',
-									type: 'ban'
-								});
-								return;
-							}
-
-							configuration.channels = [...configuration.channels, channel];
-
-							push({
-								message: `La chaine ${channel} a bien été ajouté`,
-								name: 'Information',
-								type: 'cheers'
-							});
-
-							channel = '';
-						}}>Ajouter</button
-					>
-				</div>
-
-				<div class="list">
-					{#each configuration.channels as channel (channel)}
-						<p
-							on:click={() => {
-								configuration.channels = configuration.channels.filter((c) => c != channel);
-							}}
+							}}>Ajouter</button
 						>
-							{channel}
-						</p>
-					{/each}
+					</div>
+
+					<div class="list">
+						{#each configuration.channels as channel (channel)}
+							<p
+								on:click={() => {
+									configuration.channels = configuration.channels.filter((c) => c != channel);
+								}}
+							>
+								{channel}
+							</p>
+						{/each}
+					</div>
 				</div>
-			{:else if activePage == 2}
-				<p>
-					Qu'elle sont <b>les éléments</b> que vous <u>souhaitez afficher</u> dans votre tchat ? 🤔
-				</p>
-				<div class="list">
-					{#each eventName as event (event.type)}
-						<p>
-							<label id={event.type} name={event.type}
-								>{event.name}
-								<input
-									type="checkbox"
-									id={event.type}
-									name={event.type}
-									value={event.type}
-									checked={configuration.events.includes(event.type)}
-									on:change={(e) => {
-										if (configuration.events.includes(event.type)) {
-											configuration.events = configuration.events.filter((c) => c != event.type);
-											remove(event?.test?.message, '');
-										} else {
-											configuration.events = [...configuration.events, event.type];
-											push(event.test, 12000);
-										}
-									}}
-								/>
-							</label>
-						</p>
-					{/each}
+				<!-- {:else if activePage == 2} -->
+				<div class="page">
+					<p>
+						Qu'elle sont <b>les éléments</b> que vous <u>souhaitez afficher</u> dans votre tchat ? 🤔
+					</p>
+					<div class="list">
+						{#each eventName as event (event.type)}
+							<p>
+								<label id={event.type} name={event.type}
+									>{event.name}
+									<input
+										type="checkbox"
+										id={event.type}
+										name={event.type}
+										value={event.type}
+										checked={configuration.events.includes(event.type)}
+										on:change={(e) => {
+											if (configuration.events.includes(event.type)) {
+												configuration.events = configuration.events.filter((c) => c != event.type);
+												remove(event?.test?.message, '');
+											} else {
+												configuration.events = [...configuration.events, event.type];
+												push(event.test, 12000);
+											}
+										}}
+									/>
+								</label>
+							</p>
+						{/each}
+					</div>
 				</div>
-			{:else if activePage == 3}
-				<p>Choisissez votre <b>thème favori</b>, celui qui vous fait <b>vibrer</b> ! 💖</p>
-				<select bind:value={configuration.theme}>
-					{#each Object.keys(components) as theme (theme)}
-						<option value={theme}>{theme}</option>
-					{/each}
-				</select>
-			{:else if activePage == 4}
-				<p>Voulez vous <b>afficher les badges</b> des <u>utilisateurs</u> dans le chat ?</p>
-				<button
-					on:click={() => {
-						configuration.badge = !configuration.badge;
+				<!-- {:else if activePage == 3} -->
+				<div class="page">
+					<p>Choisissez votre <b>thème favori</b>, celui qui vous fait <b>vibrer</b> ! 💖</p>
+					<select bind:value={configuration.theme}>
+						{#each Object.keys(components) as theme (theme)}
+							<option value={theme}>{theme}</option>
+						{/each}
+					</select>
+				</div>
+				<!-- {:else if activePage == 4} -->
+				<div class="page">
+					<p>Voulez vous <b>afficher les badges</b> des <u>utilisateurs</u> dans le chat ?</p>
+					<button
+						on:click={() => {
+							configuration.badge = !configuration.badge;
 
-						let element = [];
+							let element = [];
 
-						if (configuration.badge) {
-							let nbBadge = Math.floor(Math.random() * 3) + 1;
+							if (configuration.badge) {
+								let nbBadge = Math.floor(Math.random() * 3) + 1;
 
-							for (let i = 0; i < nbBadge; i++) {
-								let badge = badgets[Math.floor(Math.random() * badgets.length)];
-								if (!element.includes(badge)) {
-									element.push(badge);
+								for (let i = 0; i < nbBadge; i++) {
+									let badge = badgets[Math.floor(Math.random() * badgets.length)];
+									if (!element.includes(badge)) {
+										element.push(badge);
+									}
 								}
 							}
-						}
 
-						msg.map((e) => {
-							e.tagsUrl = element;
-						});
+							msg.map((e) => {
+								e.tagsUrl = element;
+							});
 
-						messages.set(msg);
-					}}
-				>
-					{#if configuration.badge}
-						Désactiver
-					{:else}
-						Activer
-					{/if}
-				</button>
-			{:else if activePage == 5}
-				<p>Voulez vous <b>afficher les couleurs</b> des <u>utilisateurs</u> dans le chat ?</p>
-				<button
-					on:click={() => {
-						configuration.color = !configuration.color;
-
-						msg.map((e) => {
-							e.color = configuration.color ? randomColorHexaCode() : null;
-						});
-						messages.set(msg);
-					}}
-				>
-					{#if configuration.color}
-						Désactiver
-					{:else}
-						Activer
-					{/if}
-				</button>
-			{:else if activePage == 6}
-				<p>De quel <b>côté</b> souhaitez-vous afficher votre tchat ? 📝</p>
-				<div class="list">
-					<p>
-						<label>
-							<input
-								type="radio"
-								bind:group={configuration.position}
-								name="position"
-								value="left"
-							/>
-							Gauche
-						</label>
-					</p>
-
-					<p>
-						<label>
-							<input
-								type="radio"
-								bind:group={configuration.position}
-								name="position"
-								value="right"
-							/>
-							Droite
-						</label>
-					</p>
+							messages.set(msg);
+						}}
+					>
+						{#if configuration.badge}
+							Désactiver
+						{:else}
+							Activer
+						{/if}
+					</button>
 				</div>
-			{:else if activePage == 7}
-				<p>Ne pas afficher certaine personne dans votre tchat, c'est possible ! 🤫</p>
+				<!-- {:else if activePage == 5} -->
+				<div class="page">
+					<p>Voulez vous <b>afficher les couleurs</b> des <u>utilisateurs</u> dans le chat ?</p>
+					<button
+						on:click={() => {
+							configuration.color = !configuration.color;
 
-				<div class="inputContainer">
-					<input
-						type="text"
-						bind:value={blacklist}
-						placeholder="nightbot"
-						on:keyup={(e) => {
-							if (e.key == 'Enter') {
-								if (!blacklist || configuration?.blacklist?.includes(blacklist)) return;
+							msg.map((e) => {
+								e.color = configuration.color ? randomColorHexaCode() : null;
+							});
+							messages.set(msg);
+						}}
+					>
+						{#if configuration.color}
+							Désactiver
+						{:else}
+							Activer
+						{/if}
+					</button>
+				</div>
+				<!-- {:else if activePage == 6} -->
+				<div class="page">
+					<p>De quel <b>côté</b> souhaitez-vous afficher votre tchat ? 📝</p>
+					<div class="list">
+						<p>
+							<label>
+								<input
+									type="radio"
+									bind:group={configuration.position}
+									name="position"
+									value="left"
+								/>
+								Gauche
+							</label>
+						</p>
+
+						<p>
+							<label>
+								<input
+									type="radio"
+									bind:group={configuration.position}
+									name="position"
+									value="right"
+								/>
+								Droite
+							</label>
+						</p>
+					</div>
+				</div>
+				<!-- {:else if activePage == 7} -->
+				<div class="page">
+					<p>Ne pas afficher certaine personne dans votre tchat, c'est possible ! 🤫</p>
+
+					<div class="inputContainer">
+						<input
+							type="text"
+							bind:value={blacklist}
+							placeholder="nightbot"
+							on:keyup={(e) => {
+								if (e.key == 'Enter') {
+									if (!blacklist || configuration?.blacklist?.includes(blacklist)) return;
+									if (!twitchUsernameRegex.test(blacklist)) {
+										push({
+											message: `Le nom de chaine fournis n'est pas valide`,
+											name: 'Erreur',
+											type: 'ban'
+										});
+										return;
+									}
+
+									configuration.blacklist = [...configuration.blacklist, blacklist];
+									blacklist = '';
+								}
+							}}
+						/>
+						<button
+							disabled={!blacklist || configuration?.blacklist?.includes(blacklist)}
+							on:click={() => {
+								if (!blacklist || configuration.blacklist.includes(blacklist)) return;
 								if (!twitchUsernameRegex.test(blacklist)) {
 									push({
 										message: `Le nom de chaine fournis n'est pas valide`,
@@ -508,62 +579,76 @@
 
 								configuration.blacklist = [...configuration.blacklist, blacklist];
 								blacklist = '';
-							}
-						}}
-					/>
-					<button
-						disabled={!blacklist || configuration?.blacklist?.includes(blacklist)}
-						on:click={() => {
-							if (!blacklist || configuration.blacklist.includes(blacklist)) return;
-							if (!twitchUsernameRegex.test(blacklist)) {
-								push({
-									message: `Le nom de chaine fournis n'est pas valide`,
-									name: 'Erreur',
-									type: 'ban'
-								});
-								return;
-							}
-
-							configuration.blacklist = [...configuration.blacklist, blacklist];
-							blacklist = '';
-						}}>Ajouter</button
-					>
-				</div>
-				<div class="list">
-					{#each configuration.blacklist as blacklist (blacklist)}
-						<p
-							on:click={() => {
-								configuration.blacklist = configuration?.blacklist?.filter((c) => c != blacklist);
-							}}
+							}}>Ajouter</button
 						>
-							{blacklist}
-						</p>
-					{/each}
+					</div>
+					<div class="list">
+						{#each configuration.blacklist as blacklist (blacklist)}
+							<p
+								on:click={() => {
+									configuration.blacklist = configuration?.blacklist?.filter((c) => c != blacklist);
+								}}
+							>
+								{blacklist}
+							</p>
+						{/each}
+					</div>
 				</div>
-			{:else if activePage == 8}
-				<p>Voulez vous avoir un avatar à coté de votre tchat</p>
-				<button
-					on:click={() => {
-						configuration.avatar = !configuration.avatar;
-					}}
-				>
-					{#if configuration.avatar}
-						Désactiver
-					{:else}
-						Activer
-					{/if}
-				</button>
+				<!-- {:else if activePage == 8} -->
+				<div class="page">
+					<p>Voulez vous avoir un avatar à coté de votre tchat</p>
+					<button
+						on:click={() => {
+							configuration.avatar = !configuration.avatar;
+						}}
+					>
+						{#if configuration.avatar}
+							Désactiver
+						{:else}
+							Activer
+						{/if}
+					</button>
 
-				{#if configuration.avatar}
-					<br />
-					<p>Vous pouvez mettre des avatars custom en ajoutant les liens des images ici:</p>
-					<div class="inputContainer">
-						<input
-							type="text"
-							bind:value={customAvatar}
-							placeholder="https://i.imgur.com/6e4RRRF.gif"
-							on:keyup={async (e) => {
-								if (e.key == 'Enter') {
+					{#if configuration.avatar}
+						<br />
+						<p>Vous pouvez mettre des avatars custom en ajoutant les liens des images ici:</p>
+						<div class="inputContainer">
+							<input
+								type="text"
+								bind:value={customAvatar}
+								placeholder="https://i.imgur.com/6e4RRRF.gif"
+								on:keyup={async (e) => {
+									if (e.key == 'Enter') {
+										if (!customAvatar || configuration.customAvatar.includes(customAvatar)) return;
+										if (!urlRegex.test(customAvatar)) {
+											push({
+												message: `Le liens fournis n'est pas valide`,
+												name: 'Erreur',
+												type: 'ban'
+											});
+											return;
+										}
+
+										let info = await fetch(customAvatar).catch(() => {});
+										console.log(info);
+
+										if (!info || info.status >= 300 || info.status < 200) {
+											push({
+												message: `Le liens fournis n'est pas valide: \n ${info.status} ${info.statusText}`,
+												name: 'Erreur',
+												type: 'ban'
+											});
+											return;
+										}
+
+										configuration.customAvatar = [...configuration.customAvatar, customAvatar];
+										randomAvatar();
+										customAvatar = '';
+									}
+								}}
+							/>
+							<button
+								on:click={async () => {
 									if (!customAvatar || configuration.customAvatar.includes(customAvatar)) return;
 									if (!urlRegex.test(customAvatar)) {
 										push({
@@ -571,6 +656,7 @@
 											name: 'Erreur',
 											type: 'ban'
 										});
+
 										return;
 									}
 
@@ -589,99 +675,72 @@
 									configuration.customAvatar = [...configuration.customAvatar, customAvatar];
 									randomAvatar();
 									customAvatar = '';
-								}
-							}}
-						/>
-						<button
-							on:click={async () => {
-								if (!customAvatar || configuration.customAvatar.includes(customAvatar)) return;
-								if (!urlRegex.test(customAvatar)) {
-									push({
-										message: `Le liens fournis n'est pas valide`,
-										name: 'Erreur',
-										type: 'ban'
-									});
-
-									return;
-								}
-
-								let info = await fetch(customAvatar).catch(() => {});
-								console.log(info);
-
-								if (!info || info.status >= 300 || info.status < 200) {
-									push({
-										message: `Le liens fournis n'est pas valide: \n ${info.status} ${info.statusText}`,
-										name: 'Erreur',
-										type: 'ban'
-									});
-									return;
-								}
-
-								configuration.customAvatar = [...configuration.customAvatar, customAvatar];
-								randomAvatar();
-								customAvatar = '';
-							}}>Ajouter</button
-						>
-					</div>
-
-					<div class="list">
-						{#each configuration.customAvatar as customAvatar (customAvatar)}
-							<p
-								on:click={() => {
-									configuration.customAvatar = configuration.customAvatar.filter(
-										(c) => c != customAvatar
-									);
-									randomAvatar();
-								}}
+								}}>Ajouter</button
 							>
-								{customAvatar.split('/').pop().split('?')[0]}
-							</p>
-						{/each}
-					</div>
-				{/if}
-			{:else if activePage == 9}
-				<p>
-					Vous êtes maintenant prêt à <b>utiliser votre tchat</b>, Il ne vous reste plus qu'a
-					<u>ajouter le liens</u>
-					suivant dans votre <b>scene</b>
-				</p>
+						</div>
 
-				<textarea
-					bind:value={link}
-					style="width: 100%; height: 100px; resize: none; border-radius: 5px; border: solid; padding: 5px 10px; background-color: #f0f0f0; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);"
-					readonly
-				/>
-			{/if}
-		</div>
-
-		<div class="footer">
-			{#if activePage > 0}
-				<button on:click={() => (activePage -= 1)}>previous</button>
-			{/if}
-
-			{#if activePage <= pageTotal}
-				<button
-					disabled={!canNext}
-					on:click={() => {
-						if (activePage == pageTotal) {
-							console.log('Fin de la configuration');
-							generateLink();
-							activePage++;
-						} else {
-							activePage++;
-						}
-					}}
-				>
-					{#if activePage == 0}
-						Commencer la configuration
-					{:else if activePage == pageTotal}
-						Terminer la configuration
-					{:else}
-						Suivant
+						<div class="list">
+							{#each configuration.customAvatar as customAvatar (customAvatar)}
+								<p
+									on:click={() => {
+										configuration.customAvatar = configuration.customAvatar.filter(
+											(c) => c != customAvatar
+										);
+										randomAvatar();
+									}}
+								>
+									{customAvatar.split('/').pop().split('?')[0]}
+								</p>
+							{/each}
+						</div>
 					{/if}
-				</button>
-			{/if}
-		</div>
+				</div>
+				<!-- {:else if activePage == 9} -->
+				<div class="page">
+					<p>
+						Vous êtes maintenant prêt à <b>utiliser votre tchat</b>, Il ne vous reste plus qu'a
+						<u>ajouter le liens</u>
+						suivant dans votre <b>scene</b>
+					</p>
+
+					<textarea
+						bind:value={link}
+						style="width: 100%; height: 100px; resize: none; border-radius: 5px; border: solid; padding: 5px 10px; background-color: #f0f0f0; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);"
+						readonly
+					/>
+				</div>
+				<!-- {/if} -->
+			</div>
+
+			<div class="footer">
+				{#if activePage > 0}
+					<button on:click={() => (activePage -= 1)}>previous</button>
+				{/if}
+
+				{#if activePage <= pageTotal}
+					<button
+						disabled={!canNext}
+						on:click={() => {
+							if (activePage == pageTotal) {
+								console.log('Fin de la configuration');
+								generateLink();
+								activePage++;
+							} else {
+								activePage++;
+							}
+						}}
+					>
+						{#if activePage == 0}
+							Commencer la configuration
+						{:else if activePage == pageTotal}
+							Terminer la configuration
+						{:else}
+							Suivant
+						{/if}
+					</button>
+				{/if}
+			</div>
+		{/key}
 	</div>
 </div>
 
@@ -708,12 +767,16 @@
 		justify-content: center;
 		align-items: center;
 
+		.container::-webkit-scrollbar {
+			display: none;
+		}
+
 		.container {
-			// overflow: hidden;
 			overflow: scroll;
 			transition: height 0.5s ease;
-			// overflow-y: hidden;
-			///
+
+			-ms-overflow-style: none; /* IE and Edge */
+			scrollbar-width: none; /* Firefox */
 
 			max-width: 600px; /* Largeur maximale de la div */
 			padding: 20px;
@@ -728,10 +791,45 @@
 			width: 600px;
 
 			.body {
-				height: auto;
+				// height: auto;
+				// display: flex;
+				// flex-direction: column;
+				// gap: 10px;
+
+				//////
+
+				// margin: 5rem;
+				// border-radius: 1rem;
+
+				// box-shadow: 0 0.5rem 2rem -1rem black;
+
 				display: flex;
-				flex-direction: column;
-				gap: 10px;
+				align-items: center;
+
+				overflow: hidden;
+
+				.page {
+					padding: 0.5rem;
+					display: flex;
+					flex-direction: column;
+					flex: 1 0 100%;
+					gap: 10px;
+					height: max-content;
+					// padding: 2rem;
+
+					translate: calc(var(--page) * -100%);
+					transition: translate cubic-bezier(0.1, 0.75, 0.25, 1) 1000ms;
+
+					// h1 {
+					// 	margin-bottom: 1em;
+					// }
+
+					// p {
+					// 	margin-top: 1em;
+					// }
+				}
+
+				/////
 
 				input {
 					padding: 5px 10px;
