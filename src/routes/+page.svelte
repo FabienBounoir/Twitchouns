@@ -1,6 +1,14 @@
 <script>
+	import { tweened } from 'svelte/motion';
+	import { expoOut } from 'svelte/easing';
+
 	import Avatar from '$lib/components/avatar.svelte';
 	import Clip from '$lib/components/clip.svelte';
+
+	import { config } from '$lib/stores/config';
+	import { messages, push, remove } from '$lib/stores/message';
+	import { randomAvatar } from '$lib/stores/avatar';
+
 	import Bluepurple from '$lib/components/theme/bluepurple.svelte';
 	import Dark from '$lib/components/theme/dark.svelte';
 	import Default from '$lib/components/theme/default.svelte';
@@ -12,20 +20,12 @@
 	import Neon from '$lib/components/theme/neon.svelte';
 	import Pivotass from '$lib/components/theme/pivotass.svelte';
 	import Rgb from '$lib/components/theme/rgb.svelte';
-	import { config } from '$lib/stores/config';
-	import { messages, push, remove } from '$lib/stores/message';
-	import { get, writable } from 'svelte/store';
 
-	import { spring } from 'svelte/motion';
-	import { avatar, randomAvatar } from '$lib/stores/avatar';
-	let container;
-	let msg = [];
+	let colorVar = `${Math.floor(Math.random() * 106)},${Math.floor(
+		Math.random() * 106
+	)},${Math.floor(Math.random() * 106)}`;
 
-	///////////////////
-
-	import { expoOut } from 'svelte/easing';
-	import { tweened } from 'svelte/motion';
-
+	//////////ANIMATE HEIGHT/////////
 	let heightTarget = tweened(0, {
 		easing: expoOut,
 		duration: 1000
@@ -50,32 +50,38 @@
 
 		return { update };
 	};
+	//////////ANIMATE HEIGHT/////////
 
-	//////////////////
-
+	/////////REGEX/////////
 	const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
 	const twitchUsernameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_-]{3,24}$/;
+	/////////REGEX/////////
+
+	// @ts-ignore
+	let badgets = []; // all badges
+	// @ts-ignore
+	let msg = []; // all message
+	let configuration = {}; // all configuration
+
+	let canNext = true; // check if user can go to next page
 
 	messages.subscribe((value) => {
 		msg = value;
 	});
 
-	let configuration = {};
-
 	config.subscribe((value) => {
 		configuration = value;
 	});
 
-	randomAvatar();
-
 	let pageTotal = 8;
 	let activePage = 0;
 
+	/////// element input ///////
 	let channel = '';
 	let blacklist = '';
 	let customAvatar = '';
-
-	let badgets = [];
+	let link = '';
+	/////// element input ///////
 
 	const getGBadge = async () => {
 		const res = await fetch('/api/getGBadge');
@@ -93,8 +99,44 @@
 		}
 	};
 
+	randomAvatar();
 	getGBadge();
 
+	const randomColorHexaCode = () => {
+		let letters = '012345678';
+		let color = '#';
+		for (let i = 0; i < 6; i++) color += letters[Math.floor(Math.random() * letters.length)];
+		return color;
+	};
+
+	const checkNext = () => {
+		if (activePage == 1) {
+			canNext = configuration.channels.length > 0;
+		} else if (activePage == 2) {
+			canNext = configuration.events.length > 0;
+		} else {
+			canNext = true;
+		}
+	};
+
+	const generateLink = () => {
+		link = `${window.location.origin}/chat/${btoa(JSON.stringify(configuration))}`;
+
+		navigator.clipboard.writeText(link).then(
+			function () {
+				push({
+					message: `Lien copié dans le presse papier`,
+					name: 'Information',
+					type: 'sub'
+				});
+			},
+			function () {
+				console.log('Copie echoué');
+			}
+		);
+	};
+
+	////Différents thèmes/////
 	const components = {
 		Default: Default,
 		Dark: Dark,
@@ -108,17 +150,9 @@
 		Pivotass: Pivotass,
 		Neon: Neon
 	};
+	////Différents thèmes/////
 
-	// const MessageInfo = [
-	// 	'Bienvenue sur la page de configuration de votre tchat twitch',
-	// 	'Pour commencer, veuillez entre votre nom de chaine twitch',
-	// 	'Ensuite, choisissez le theme de votre tchat',
-	// 	'Choisissez la position de votre tchat',
-	// 	'Choisissez la taille de votre tchat',
-	// 	'Choisissez la couleur de votre tchat',
-	// 	'Choisissez les events que vous voulez afficher',
-	// 	'Choisissez les personnes a ne pas afficher dans votre tchat'
-	// ];
+	const usernames = ['Bouns', 'Maouui', 'Rush', 'Pivotass', 'Guillaume'];
 
 	const MessageInfo = [
 		'Oh bienvenue à toi ❤️',
@@ -128,15 +162,6 @@
 		'Puis de choisir les interactions que tu veux',
 		"Et pour finir de copier le lien est de l'intégrer dans une source navigateur sur OBS"
 	];
-
-	const randomColorHexaCode = () => {
-		let letters = '012345678';
-		let color = '#';
-		for (let i = 0; i < 6; i++) color += letters[Math.floor(Math.random() * letters.length)];
-		return color;
-	};
-
-	let usernames = ['Bouns', 'Maouui', 'Rush', 'Pivotass', 'Guillaume'];
 
 	const eventName = [
 		{
@@ -150,8 +175,7 @@
 					'https://static-cdn.jtvnw.net/badges/v1/b80f038a-0a47-4e24-b48f-63ab7cecbee5/3',
 					'https://static-cdn.jtvnw.net/badges/v1/5864739a-5e58-4623-9450-a2c0555ef90b/3'
 				],
-				color: randomColorHexaCode(),
-				_id: Date.now()
+				color: randomColorHexaCode()
 			}
 		},
 		{
@@ -221,8 +245,6 @@
 	let actualMessage = 0;
 
 	const demoMessage = () => {
-		console.log('Nouveau message');
-
 		let messageTest = {
 			message: MessageInfo[actualMessage],
 			username: usernames[Math.floor(Math.random() * usernames.length)],
@@ -231,22 +253,15 @@
 		};
 
 		if (configuration.badge && badgets.length > 0) {
-			let nbBadge = Math.floor(Math.random() * 3) + 1;
-
-			for (let i = 0; i < nbBadge; i++) {
-				let badge = badgets[Math.floor(Math.random() * badgets.length)];
-				if (!messageTest.tagsUrl.includes(badge)) {
-					messageTest.tagsUrl.push(badge);
-				}
+			for (let i = 0; i < Math.floor(Math.random() * 3); i++) {
+				const badge = badgets[Math.floor(Math.random() * badgets.length)];
+				if (!messageTest.tagsUrl.includes(badge)) messageTest.tagsUrl.push(badge);
 			}
 		}
 
-		if (configuration.color) {
-			messageTest.color = randomColorHexaCode();
-		}
+		if (configuration.color) messageTest.color = randomColorHexaCode();
 
 		push(messageTest, 20000);
-
 		randomAvatar();
 
 		actualMessage++;
@@ -255,57 +270,18 @@
 
 	setTimeout(() => {
 		demoMessage();
+		setInterval(() => demoMessage(), 5000);
 	}, 1000);
 
-	setInterval(() => demoMessage(), 5000);
-
 	$: activePage, configuration, checkNext();
-
-	let canNext = true;
-
-	let link = '';
-
-	const checkNext = () => {
-		if (activePage == 1) {
-			canNext = configuration.channels.length > 0;
-		} else if (activePage == 2) {
-			canNext = configuration.events.length > 0;
-		} else {
-			canNext = true;
-		}
-	};
-
-	const generateLink = () => {
-		link = `${window.location.origin}/chat/${btoa(JSON.stringify(configuration))}`;
-
-		navigator.clipboard.writeText(link).then(
-			function () {
-				push({
-					message: `Lien copié dans le presse papier`,
-					name: 'Information',
-					type: 'sub'
-				});
-			},
-			function () {
-				console.log('Copie echoué');
-			}
-		);
-	};
 </script>
 
 <svelte:head>
 	<title>⚙️ Overlay Configuration</title>
 </svelte:head>
 
-<!-- <h1>Bienvenue sur la page de Config de Twitchouns</h1>
-<pre style="color:white; position: fixed; z-index:999">{JSON.stringify(
-		configuration,
-		null,
-		2
-	)}</pre> -->
-
 <main id="chat-container">
-	<div id="saver">
+	<div id="saver" style:--color={colorVar}>
 		<div
 			class="gridApp {configuration.position === 'left' ? 'gridLeft' : 'gridRight'}"
 			style="margin-bottom: {configuration.margin[2]}px; margin-top: {configuration
@@ -325,8 +301,8 @@
 	<Clip />
 </main>
 
-<div class="configuration">
-	<div class="container" bind:this={container}>
+<div class="configuration" style:--color={colorVar}>
+	<div class="container">
 		<h2>✨ Twitchouns ✨</h2>
 		{#key configuration}
 			<div
@@ -338,9 +314,9 @@
 				<div class="page">
 					<!-- {#if activePage == 0} -->
 					<p>
-						Bienvenue sur <u>la page de configuration</u> du meilleur tchat twitch, cliquez sur
-						<b>Commencer la configuration</b> pour debuter la configuration et obtenir le liens à ajouter
-						au votre scene.
+						Bienvenue sur la page de configuration du meilleur tchat twitch, cliquez sur "<b
+							>Commencer la configuration</b
+						>" pour débuter la configuration et obtenir le lien à ajouter à votre scène
 					</p>
 				</div>
 				<!-- {:else if activePage == 1} -->
@@ -358,20 +334,26 @@
 								if (e.key == 'Enter') {
 									if (!channel || configuration.channels.includes(channel)) return;
 									if (!twitchUsernameRegex.test(channel)) {
-										push({
-											message: `Le nom de chaine fournis n'est pas valide`,
-											name: 'Erreur',
-											type: 'ban'
-										});
+										push(
+											{
+												message: `Le nom de chaine fournis n'est pas valide`,
+												name: 'Erreur',
+												type: 'ban'
+											},
+											7000
+										);
 										return;
 									}
 
 									configuration.channels = [...configuration.channels, channel.toLowerCase()];
-									push({
-										message: `La chaine ${channel} a bien été ajouté`,
-										name: 'Information',
-										type: 'cheers'
-									});
+									push(
+										{
+											message: `La chaine ${channel} a bien été ajouté`,
+											name: 'Information',
+											type: 'cheers'
+										},
+										10000
+									);
 
 									channel = '';
 								}
@@ -382,21 +364,27 @@
 							on:click={() => {
 								if (!channel || configuration.channels.includes(channel)) return;
 								if (!twitchUsernameRegex.test(channel)) {
-									push({
-										message: `Le nom de chaine fournis n'est pas valide`,
-										name: 'Erreur',
-										type: 'ban'
-									});
+									push(
+										{
+											message: `Le nom de chaine fournis n'est pas valide`,
+											name: 'Erreur',
+											type: 'ban'
+										},
+										7000
+									);
 									return;
 								}
 
 								configuration.channels = [...configuration.channels, channel];
 
-								push({
-									message: `La chaine ${channel} a bien été ajouté`,
-									name: 'Information',
-									type: 'cheers'
-								});
+								push(
+									{
+										message: `La chaine ${channel} a bien été ajouté`,
+										name: 'Information',
+										type: 'cheers'
+									},
+									10000
+								);
 
 								channel = '';
 							}}>Ajouter</button
@@ -540,62 +528,6 @@
 				</div>
 				<!-- {:else if activePage == 7} -->
 				<div class="page">
-					<p>Ne pas afficher certaine personne dans votre tchat, c'est possible ! 🤫</p>
-
-					<div class="inputContainer">
-						<input
-							type="text"
-							bind:value={blacklist}
-							placeholder="nightbot"
-							on:keyup={(e) => {
-								if (e.key == 'Enter') {
-									if (!blacklist || configuration?.blacklist?.includes(blacklist)) return;
-									if (!twitchUsernameRegex.test(blacklist)) {
-										push({
-											message: `Le nom de chaine fournis n'est pas valide`,
-											name: 'Erreur',
-											type: 'ban'
-										});
-										return;
-									}
-
-									configuration.blacklist = [...configuration.blacklist, blacklist];
-									blacklist = '';
-								}
-							}}
-						/>
-						<button
-							disabled={!blacklist || configuration?.blacklist?.includes(blacklist)}
-							on:click={() => {
-								if (!blacklist || configuration.blacklist.includes(blacklist)) return;
-								if (!twitchUsernameRegex.test(blacklist)) {
-									push({
-										message: `Le nom de chaine fournis n'est pas valide`,
-										name: 'Erreur',
-										type: 'ban'
-									});
-									return;
-								}
-
-								configuration.blacklist = [...configuration.blacklist, blacklist];
-								blacklist = '';
-							}}>Ajouter</button
-						>
-					</div>
-					<div class="list">
-						{#each configuration.blacklist as blacklist (blacklist)}
-							<p
-								on:click={() => {
-									configuration.blacklist = configuration?.blacklist?.filter((c) => c != blacklist);
-								}}
-							>
-								{blacklist}
-							</p>
-						{/each}
-					</div>
-				</div>
-				<!-- {:else if activePage == 8} -->
-				<div class="page">
 					<p>Voulez vous avoir un avatar à coté de votre tchat</p>
 					<button
 						on:click={() => {
@@ -694,6 +626,61 @@
 							{/each}
 						</div>
 					{/if}
+				</div>
+				<div class="page">
+					<p>Ne pas afficher certaine personne dans votre tchat, c'est possible ! 🤫</p>
+
+					<div class="inputContainer">
+						<input
+							type="text"
+							bind:value={blacklist}
+							placeholder="nightbot"
+							on:keyup={(e) => {
+								if (e.key == 'Enter') {
+									if (!blacklist || configuration?.blacklist?.includes(blacklist)) return;
+									if (!twitchUsernameRegex.test(blacklist)) {
+										push({
+											message: `Le nom de chaine fournis n'est pas valide`,
+											name: 'Erreur',
+											type: 'ban'
+										});
+										return;
+									}
+
+									configuration.blacklist = [...configuration.blacklist, blacklist];
+									blacklist = '';
+								}
+							}}
+						/>
+						<button
+							disabled={!blacklist || configuration?.blacklist?.includes(blacklist)}
+							on:click={() => {
+								if (!blacklist || configuration.blacklist.includes(blacklist)) return;
+								if (!twitchUsernameRegex.test(blacklist)) {
+									push({
+										message: `Le nom de chaine fournis n'est pas valide`,
+										name: 'Erreur',
+										type: 'ban'
+									});
+									return;
+								}
+
+								configuration.blacklist = [...configuration.blacklist, blacklist];
+								blacklist = '';
+							}}>Ajouter</button
+						>
+					</div>
+					<div class="list">
+						{#each configuration.blacklist as blacklist (blacklist)}
+							<p
+								on:click={() => {
+									configuration.blacklist = configuration?.blacklist?.filter((c) => c != blacklist);
+								}}
+							>
+								{blacklist}
+							</p>
+						{/each}
+					</div>
 				</div>
 				<!-- {:else if activePage == 9} -->
 				<div class="page">
@@ -891,7 +878,7 @@
 					cursor: pointer;
 					padding: 5px 10px;
 					border-radius: 5px;
-					background-color: #ff6d6d;
+					background-color: rgb(var(--color, 51 0 106), 50%);
 					box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 				}
 			}
@@ -949,10 +936,9 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		/* background-image: url("./assets/background.png"); */
 		background-size: auto;
 		background-image: url('/noise-light.png');
-		background-color: rgb(51 0 106);
+		background-color: rgb(var(--color, 51 0 106));
 	}
 
 	div#saver img.animationAvatar {
