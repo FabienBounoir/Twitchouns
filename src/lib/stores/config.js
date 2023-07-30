@@ -17,5 +17,6 @@ export const config = writable({
     blacklist: [],
     customAvatar: [],
     margin: [0, 0, 0, 0],
+    clip: false,
     debug: false
 });
