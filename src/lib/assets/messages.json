@@ -75,5 +75,16 @@
         ],
         "color": "#0000FF",
         "_id": "92b222a6-4faa-41e1-919a-20f73cb37a34"
+    },
+    {
+        "message": "0;s;1;P;c;1;u;00008BFF;o;1;f;0;0t;1;0l;3;0o;1;0a;1;0f;0;1b;0;S;c;5;s;1.114;o;0.839",
+        "username": "BadbounsTV",
+        "type": "tchat",
+        "tagsUrl": [
+            "https://static-cdn.jtvnw.net/badges/v1/b80f038a-0a47-4e24-b48f-63ab7cecbee5/3",
+            "https://static-cdn.jtvnw.net/badges/v1/5864739a-5e58-4623-9450-a2c0555ef90b/3"
+        ],
+        "color": "#0000FF",
+        "_id": "92b222a6-441e1-919a-20f73cb37a34"
     }
 ]
