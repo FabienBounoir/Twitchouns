@@ -15,7 +15,6 @@
 		}}
 		on:ended={() => asVideo.set(false)}
 		autoplay
-		muted
 	>
 		<source src={$clip} type="video/mp4" />
 		<track kind="captions" />
