@@ -53,16 +53,23 @@
 							{#if first}
 								<span class="username">
 									{message.username}
+									{#if message.tagsUrl?.length && next?.username !== message.username}
+										<!-- <span class=""> -->
+										{#each message.tagsUrl as badge (badge)}
+											<img src={badge} alt=" " class="badge" />
+										{/each}
+										<!-- </span> -->
+									{/if}
 								</span>
 							{/if}
 							{@html message.message}
-							{#if message.tagsUrl?.length && next?.username !== message.username}
+							<!-- {#if message.tagsUrl?.length && next?.username !== message.username}
 								<span class="badges">
 									{#each message.tagsUrl as badge (badge)}
 										<img src={badge} alt=" " class="badge" />
 									{/each}
 								</span>
-							{/if}
+							{/if} -->
 						</span>
 
 						<!-- {#if next?.username !== message.username}
@@ -92,7 +99,10 @@
 		.badges {
 			position: absolute;
 
-			bottom: 0;
+			// top: 0;
+			// right: 0;
+
+			bottom: 0rem;
 			left: -0.75rem;
 
 			display: flex;
@@ -125,22 +135,33 @@
 			// padding-right: 2rem;
 			border-radius: 1rem;
 			box-shadow: 0 0.5rem 1.25rem -0.5rem var(--color);
-			width: -webkit-fill-available;
-			width: -moz-available;
-			width: fill-available;
+
+			// width: -webkit-fill-available;
+			// width: -moz-available;
+			// width: fill-available;
 		}
 
 		&.first {
 			margin-top: 1.5rem;
 		}
 
-		&.last:has(.badges) {
-			margin-bottom: 2rem;
+		// &.last:has(.badges) {
+		// 	margin-bottom: 2rem !important;
 
-			.message {
-				padding-bottom: 1rem;
-			}
-		}
+		// 	.message {
+		// 		padding-bottom: 1rem !important;
+		// 	}
+		// }
+
+		// &.last {
+		// 	margin-bottom: 2rem;
+
+		// 	.message {
+		// 		// background-color: red;
+		// 		// background-color: darkblue;
+		// 		padding-bottom: 1rem;
+		// 	}
+		// }
 
 		&.between .message,
 		&.first:not(.last) .message {
@@ -371,7 +392,13 @@
 		font-weight: 350;
 		align-items: center;
 		word-wrap: break-word;
+		word-break: break-word;
 		/* display: flex; */
+	}
+
+	li span {
+		word-wrap: break-word;
+		word-break: break-word;
 	}
 
 	b {
